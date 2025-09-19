@@ -27,7 +27,7 @@ AJUANFRAMIREZ_TASKCharacter::AJUANFRAMIREZ_TASKCharacter()
 	bUseControllerRotationRoll = false;
 
 	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
+	GetCharacterMovement()->bOrientRotationToMovement = false; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
 
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
@@ -52,6 +52,17 @@ AJUANFRAMIREZ_TASKCharacter::AJUANFRAMIREZ_TASKCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+	BaseSpeed = 100;
+	CurrentYawSpeed = 0.f;
+	MaxYawSpeed = 160.f; 
+	YawAcceleration = 80.f;
+
+	CurrentSpeed = 10.f;
+	PumpImpulse = 500.f;
+	MaxSpeed = 5000.f;
+	Friction = 0.15f;
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -85,6 +96,8 @@ void AJUANFRAMIREZ_TASKCharacter::SetupPlayerInputComponent(UInputComponent* Pla
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AJUANFRAMIREZ_TASKCharacter::Look);
+
+		EnhancedInputComponent->BindAction(PumpAction, ETriggerEvent::Started, this, &AJUANFRAMIREZ_TASKCharacter::Pump);
 	}
 	else
 	{
@@ -94,31 +107,46 @@ void AJUANFRAMIREZ_TASKCharacter::SetupPlayerInputComponent(UInputComponent* Pla
 
 void AJUANFRAMIREZ_TASKCharacter::Move(const FInputActionValue& Value)
 {
-	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
 	if (Controller != nullptr)
 	{
-		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		float DeltaTime = GetWorld()->GetDeltaSeconds();
 
-		// get forward vector
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	
-		// get right vector 
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y) * MovementVector.X;
+		if (MovementVector.Y > 0.f || CurrentSpeed > 0.f)
+		{
+			float TargetYawSpeed = MovementVector.X * MaxYawSpeed;
+			CurrentYawSpeed = FMath::FInterpTo(CurrentYawSpeed, TargetYawSpeed, DeltaTime, YawAcceleration);
 
-		// add movement 
-		AddMovementInput(ForwardDirection, MovementVector.Y);
+			FRotator NewRotation = GetActorRotation();
+			NewRotation.Yaw += CurrentYawSpeed * DeltaTime;
+			SetActorRotation(NewRotation);
 
-		FRotator NewRotation = GetActorRotation();
-		NewRotation.Yaw += MovementVector.X * 2.0f; // 2.0f = velocidad de giro (ajústala)
+			FVector ForwardDir = GetActorForwardVector().GetSafeNormal();
 
-		SetActorRotation(NewRotation);
+			float InputScale = MovementVector.Y * BaseSpeed;
 
-		//AddMovementInput(RightDirection);// , MovementVector.X / 26);
+			GetCharacterMovement()->MaxWalkSpeed = BaseSpeed + CurrentSpeed;
+
+			AddMovementInput(ForwardDir, InputScale);
+
+			if (CurrentSpeed > 0.f)
+			{
+				CurrentSpeed = FMath::FInterpTo(CurrentSpeed, 0.f, DeltaTime, Friction);
+			}
+
+			if (GEngine)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Green,
+					FString::Printf(TEXT("CurrentSpeed: %.2f"), CurrentSpeed));
+			}
+		}
 	}
+}
+
+void AJUANFRAMIREZ_TASKCharacter::Pump(const FInputActionValue& Value) 
+{
+	CurrentSpeed = FMath::Clamp(CurrentSpeed + PumpImpulse, 0.f, MaxSpeed);
 }
 
 void AJUANFRAMIREZ_TASKCharacter::Look(const FInputActionValue& Value)

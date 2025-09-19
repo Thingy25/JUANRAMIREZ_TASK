@@ -44,17 +44,34 @@ class AJUANFRAMIREZ_TASKCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* PumpAction;
+
 public:
 	AJUANFRAMIREZ_TASKCharacter();
 	
 
 protected:
 
-	/** Called for movement input */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement variables")
+	float BaseSpeed;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement variables")
+	float CurrentYawSpeed;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement variables")
+	float MaxYawSpeed;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement variables")
+	float YawAcceleration;
+
+	float CurrentSpeed;       
+	float PumpImpulse;       
+	float MaxSpeed;           
+	float Friction;
+
 	void Move(const FInputActionValue& Value);
 
-	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
+
+	void Pump(const FInputActionValue& Value);
 			
 
 protected:
