@@ -53,15 +53,15 @@ AJUANFRAMIREZ_TASKCharacter::AJUANFRAMIREZ_TASKCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
-	BaseSpeed = 100;
+	BaseSpeed = 150;
 	CurrentYawSpeed = 0.f;
 	MaxYawSpeed = 160.f; 
 	YawAcceleration = 80.f;
 
-	CurrentSpeed = 10.f;
-	PumpImpulse = 500.f;
+	CurrentSpeed = 17.5f;
+	PumpImpulse = 250.f;
 	MaxSpeed = 5000.f;
-	Friction = 0.15f;
+	Friction = 0.25f;
 
 }
 
@@ -113,8 +113,8 @@ void AJUANFRAMIREZ_TASKCharacter::Move(const FInputActionValue& Value)
 	{
 		float DeltaTime = GetWorld()->GetDeltaSeconds();
 
-		if (MovementVector.Y > 0.f || CurrentSpeed > 0.f)
-		{
+		/*if (MovementVector.Y > 0.f || CurrentSpeed > 0.f)
+		{*/
 			float TargetYawSpeed = MovementVector.X * MaxYawSpeed;
 			CurrentYawSpeed = FMath::FInterpTo(CurrentYawSpeed, TargetYawSpeed, DeltaTime, YawAcceleration);
 
@@ -124,22 +124,37 @@ void AJUANFRAMIREZ_TASKCharacter::Move(const FInputActionValue& Value)
 
 			FVector ForwardDir = GetActorForwardVector().GetSafeNormal();
 
-			float InputScale = MovementVector.Y * BaseSpeed;
+			float InputScale = MovementVector.Y;
 
 			GetCharacterMovement()->MaxWalkSpeed = BaseSpeed + CurrentSpeed;
 
-			AddMovementInput(ForwardDir, InputScale);
+			//AddMovementInput(ForwardDir, InputScale);
+
+			if (MovementVector.Y > 0.f)
+			{
+				AddMovementInput(ForwardDir, MovementVector.Y);
+			}
+			else if (CurrentSpeed > KINDA_SMALL_NUMBER)
+			{
+				AddMovementInput(ForwardDir, CurrentSpeed / MaxSpeed);
+			}
 
 			if (CurrentSpeed > 0.f)
 			{
-				CurrentSpeed = FMath::FInterpTo(CurrentSpeed, 0.f, DeltaTime, Friction);
+				float DecayRate = Friction * BaseSpeed;
+                CurrentSpeed = FMath::Max(CurrentSpeed - DecayRate * DeltaTime, 0.f);
 			}
+
+			//AlignToGround();
 
 			if (GEngine)
 			{
 				GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Green,
 					FString::Printf(TEXT("CurrentSpeed: %.2f"), CurrentSpeed));
 			}
+		//}
+		else {
+			CurrentSpeed = 0;
 		}
 	}
 }
@@ -159,5 +174,31 @@ void AJUANFRAMIREZ_TASKCharacter::Look(const FInputActionValue& Value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void AJUANFRAMIREZ_TASKCharacter::AlignToGround() {
+	FVector Start = GetActorLocation();
+	FVector End = Start - FVector(0.f, 0.f, 200.f);
+	FRotator CurrentRotation = GetActorRotation();
+
+	FHitResult HitResult;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params))
+	{
+		FVector GroundNormal = HitResult.ImpactNormal;
+
+		FRotator GroundRotation = GroundNormal.ToOrientationRotator();
+		FRotator TargetRotation(GroundRotation.Pitch, CurrentRotation.Yaw, GroundRotation.Roll);
+
+		FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, GetWorld()->GetDeltaSeconds(), 5.f);
+
+		SetActorRotation(NewRotation);
+	}
+	else
+	{
+		SetActorRotation(CurrentRotation);
 	}
 }

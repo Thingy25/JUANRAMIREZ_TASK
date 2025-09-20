@@ -72,6 +72,8 @@ protected:
 	void Look(const FInputActionValue& Value);
 
 	void Pump(const FInputActionValue& Value);
+
+	void AlignToGround();
 			
 
 protected:
