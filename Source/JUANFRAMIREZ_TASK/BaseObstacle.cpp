@@ -11,11 +11,15 @@ ABaseObstacle::ABaseObstacle()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
+	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 	ObstacleMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	ObstacleMesh->SetupAttachment(RootComponent);
 	BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("ScoreCollision"));
+	BoxCollision->SetupAttachment(ObstacleMesh);
 
 	BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &ABaseObstacle::OnOverlapBegin);
+
+	Score = 50;
 
 }
 
@@ -37,7 +41,17 @@ void ABaseObstacle::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 {
 	if (OtherActor->GetClass()->ImplementsInterface(UInteractionInterface::StaticClass()))
 	{
-		IInteractionInterface::Execute_OnObstaclePassed(OtherActor, Score);
+		if (!OverlappedActors.Contains(OtherActor))
+		{
+			OverlappedActors.Add(OtherActor);
+			IInteractionInterface::Execute_OnObstaclePassed(OtherActor, Score);
+		}
+	}
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow,
+			FString::Printf(TEXT("%s"), *OtherActor->GetName()));
 	}
 }
 

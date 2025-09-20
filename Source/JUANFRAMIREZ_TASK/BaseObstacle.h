@@ -20,11 +20,16 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	UPROPERTY(VisibleAnywhere)
-	UBoxComponent* BoxCollision;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UStaticMeshComponent* ObstacleMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UBoxComponent* BoxCollision;
+
+	UPROPERTY()
+	TSet<AActor*> OverlappedActors;
+
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Score")
 	int Score;
