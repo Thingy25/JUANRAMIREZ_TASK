@@ -145,7 +145,7 @@ void AJUANFRAMIREZ_TASKCharacter::Move(const FInputActionValue& Value)
                 CurrentSpeed = FMath::Max(CurrentSpeed - DecayRate * DeltaTime, 0.f);
 			}
 
-			//AlignToGround();
+			AlignToGround();
 
 			if (GEngine)
 			{
@@ -178,27 +178,60 @@ void AJUANFRAMIREZ_TASKCharacter::Look(const FInputActionValue& Value)
 }
 
 void AJUANFRAMIREZ_TASKCharacter::AlignToGround() {
+	FHitResult Hit;
 	FVector Start = GetActorLocation();
-	FVector End = Start - FVector(0.f, 0.f, 200.f);
-	FRotator CurrentRotation = GetActorRotation();
+	FVector End = Start - FVector(0.f, 0.f, 100.f);
 
-	FHitResult HitResult;
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
 
-	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params))
+	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
 	{
-		FVector GroundNormal = HitResult.ImpactNormal;
+		FVector GroundNormal = Hit.ImpactNormal;
 
-		FRotator GroundRotation = GroundNormal.ToOrientationRotator();
-		FRotator TargetRotation(GroundRotation.Pitch, CurrentRotation.Yaw, GroundRotation.Roll);
+		DrawDebugLine(
+			GetWorld(),
+			Start,
+			Hit.Location,
+			FColor::Green,
+			false,
+			0.0f,
+			0,
+			2.0f
+		);
 
-		FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, GetWorld()->GetDeltaSeconds(), 5.f);
+		DrawDebugPoint(
+			GetWorld(),
+			Hit.Location,
+			10.0f,
+			FColor::Red,
+			false,
+			0.0f
+		);
 
-		SetActorRotation(NewRotation);
-	}
-	else
-	{
-		SetActorRotation(CurrentRotation);
-	}
+		FVector Forward = GetActorForwardVector();
+		FVector Right = FVector::CrossProduct(GroundNormal, Forward).GetSafeNormal();
+		FVector AdjustedForward = FVector::CrossProduct(Right, GroundNormal).GetSafeNormal();
+
+		FRotator TargetRotation = AdjustedForward.Rotation();
+
+		FRotator CurrentRotation = GetActorRotation();
+		FRotator SmoothedRotation = CurrentRotation;
+
+		SmoothedRotation.Pitch = FMath::FInterpTo(
+			CurrentRotation.Pitch,
+			TargetRotation.Pitch,
+			GetWorld()->GetDeltaSeconds(),
+			5.f
+		);
+
+		SmoothedRotation.Roll = FMath::FInterpTo(
+			CurrentRotation.Roll,
+			TargetRotation.Roll,
+			GetWorld()->GetDeltaSeconds(),
+			5.f
+		);
+
+		SetActorRotation(SmoothedRotation);
+	}	
 }
