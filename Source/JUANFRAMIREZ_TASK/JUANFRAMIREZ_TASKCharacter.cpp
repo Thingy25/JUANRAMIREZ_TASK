@@ -26,6 +26,8 @@ AJUANFRAMIREZ_TASKCharacter::AJUANFRAMIREZ_TASKCharacter()
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
+	PrimaryActorTick.bCanEverTick = true;
+
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = false; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
@@ -50,6 +52,11 @@ AJUANFRAMIREZ_TASKCharacter::AJUANFRAMIREZ_TASKCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	Skatebrd = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Skateboard"));
+	Skatebrd->SetupAttachment(this->GetMesh());
+
+	ScoreManager = CreateDefaultSubobject<UScoreManager>(TEXT("ScoreManager"));
+
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
@@ -61,12 +68,28 @@ AJUANFRAMIREZ_TASKCharacter::AJUANFRAMIREZ_TASKCharacter()
 	CurrentSpeed = 17.5f;
 	PumpImpulse = 250.f;
 	MaxSpeed = 5000.f;
-	Friction = 0.25f;
+	Friction = 0.2f;
 
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Input
+
+void AJUANFRAMIREZ_TASKCharacter::Tick(float DeltaTime) {
+	Super::Tick(DeltaTime);
+
+		FVector ForwardDir = GetActorForwardVector().GetSafeNormal();
+		if (CurrentSpeed > KINDA_SMALL_NUMBER)
+		{
+			AddMovementInput(ForwardDir, CurrentSpeed / MaxSpeed);
+		}
+	if (CurrentSpeed > 0.f)
+	{
+
+		float DecayRate = Friction * BaseSpeed;
+		CurrentSpeed = FMath::Max(CurrentSpeed - DecayRate * DeltaTime, 0.f);
+	}
+}
 
 void AJUANFRAMIREZ_TASKCharacter::NotifyControllerChanged()
 {
@@ -137,12 +160,6 @@ void AJUANFRAMIREZ_TASKCharacter::Move(const FInputActionValue& Value)
 			else if (CurrentSpeed > KINDA_SMALL_NUMBER)
 			{
 				AddMovementInput(ForwardDir, CurrentSpeed / MaxSpeed);
-			}
-
-			if (CurrentSpeed > 0.f)
-			{
-				float DecayRate = Friction * BaseSpeed;
-                CurrentSpeed = FMath::Max(CurrentSpeed - DecayRate * DeltaTime, 0.f);
 			}
 
 			AlignToGround();
@@ -234,4 +251,9 @@ void AJUANFRAMIREZ_TASKCharacter::AlignToGround() {
 
 		SetActorRotation(SmoothedRotation);
 	}	
+}
+
+void AJUANFRAMIREZ_TASKCharacter::OnObstaclePassed_Implementation(int32 ScoreToAdd) {
+
+	ScoreManager->AddScore(ScoreToAdd);
 }

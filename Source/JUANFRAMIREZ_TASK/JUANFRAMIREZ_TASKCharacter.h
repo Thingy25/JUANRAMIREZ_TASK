@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "InteractionInterface.h"
+#include "ScoreManager.h"
 #include "JUANFRAMIREZ_TASKCharacter.generated.h"
 
 class USpringArmComponent;
@@ -16,7 +18,7 @@ struct FInputActionValue;
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 UCLASS(config=Game)
-class AJUANFRAMIREZ_TASKCharacter : public ACharacter
+class AJUANFRAMIREZ_TASKCharacter : public ACharacter, public IInteractionInterface
 {
 	GENERATED_BODY()
 
@@ -49,6 +51,8 @@ class AJUANFRAMIREZ_TASKCharacter : public ACharacter
 
 public:
 	AJUANFRAMIREZ_TASKCharacter();
+
+	virtual void Tick(float DeltaTime) override;
 	
 
 protected:
@@ -80,15 +84,20 @@ protected:
 
 	virtual void NotifyControllerChanged() override;
 
+	virtual void OnObstaclePassed_Implementation(int32 ScoreToAdd) override;
+
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UStaticMeshComponent* Skatebrd;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UScoreManager* ScoreManager;
 
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UStaticMeshComponent* Skatebrd;
+	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }	
 };
 
