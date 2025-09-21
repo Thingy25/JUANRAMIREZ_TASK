@@ -10,6 +10,9 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include <Kismet/GameplayStatics.h>
+#include "WidgetMessages.h"
+#include "GameFramework/HUD.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -88,6 +91,8 @@ void AJUANFRAMIREZ_TASKCharacter::Tick(float DeltaTime) {
 
 		float DecayRate = Friction * BaseSpeed;
 		CurrentSpeed = FMath::Max(CurrentSpeed - DecayRate * DeltaTime, 0.f);
+
+		AlignToGround();
 	}
 }
 
@@ -162,7 +167,7 @@ void AJUANFRAMIREZ_TASKCharacter::Move(const FInputActionValue& Value)
 				AddMovementInput(ForwardDir, CurrentSpeed / MaxSpeed);
 			}
 
-			AlignToGround();
+			//AlignToGround();
 
 			if (GEngine)
 			{
@@ -256,4 +261,13 @@ void AJUANFRAMIREZ_TASKCharacter::AlignToGround() {
 void AJUANFRAMIREZ_TASKCharacter::OnObstaclePassed_Implementation(int32 ScoreToAdd) {
 
 	ScoreManager->AddScore(ScoreToAdd);
+	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	if (PC)
+	{
+		AHUD* HUD = PC->GetHUD();
+		if (HUD && HUD->GetClass()->ImplementsInterface(UWidgetMessages::StaticClass()))
+		{
+			IWidgetMessages::Execute_OnScoreChanged(HUD, ScoreToAdd);
+		}
+	}
 }

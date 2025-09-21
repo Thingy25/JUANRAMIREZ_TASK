@@ -48,10 +48,10 @@ void ABaseObstacle::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 		}
 	}
 
-	if (GEngine)
+	/*if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow,
 			FString::Printf(TEXT("%s"), *OtherActor->GetName()));
-	}
+	}*/
 }
 

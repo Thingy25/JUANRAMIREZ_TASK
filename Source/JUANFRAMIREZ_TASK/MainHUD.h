@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
+#include "WidgetMessages.h"
 #include "MainHUD.generated.h"
 
 class UPlayerWidget;
@@ -12,7 +13,7 @@ class UPlayerWidget;
  * 
  */
 UCLASS()
-class JUANFRAMIREZ_TASK_API AMainHUD : public AHUD
+class JUANFRAMIREZ_TASK_API AMainHUD : public AHUD, public IWidgetMessages
 {
 	GENERATED_BODY()
 
@@ -27,10 +28,10 @@ private:
 
 public:
 
-	void UpdateScore(int32 ScoreToAdd);
-
 protected:
 
 	virtual void BeginPlay() override;
+
+	void OnScoreChanged_Implementation(int32 ScoreToAdd) override;
 	
 };

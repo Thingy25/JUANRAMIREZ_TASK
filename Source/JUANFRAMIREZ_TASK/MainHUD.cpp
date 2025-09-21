@@ -9,18 +9,20 @@ void AMainHUD::BeginPlay() {
 
 
 	Super::BeginPlay();
-
+	
 	if (PlayerWidgetClass)
 	{
 		PlayerWidget = CreateWidget<UPlayerWidget>(GetWorld(), PlayerWidgetClass);
 		if (PlayerWidget)
 		{
-			PlayerWidget->AddToViewport();
+			PlayerWidget->AddToViewport(10);		
+			PlayerWidget->SetVisibility(ESlateVisibility::Visible);
 		}
+		
 	}
 }
 
-void AMainHUD::UpdateScore(int32 ScoreToAdd) {
+void AMainHUD::OnScoreChanged_Implementation(int32 ScoreToAdd) {
 
 	PlayerWidget->AddUIScore(ScoreToAdd);
 }

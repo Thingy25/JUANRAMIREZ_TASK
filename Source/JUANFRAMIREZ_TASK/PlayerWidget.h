@@ -16,5 +16,9 @@ class JUANFRAMIREZ_TASK_API UPlayerWidget : public UUserWidget
 
 public:
 	void AddUIScore(int32 ScoreToadd);
+
+private:
+	UPROPERTY(meta=(BindWidget))
+	class UTextBlock* ScoreText;
 	
 };

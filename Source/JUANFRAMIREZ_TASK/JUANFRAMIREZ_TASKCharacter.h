@@ -49,6 +49,8 @@ class AJUANFRAMIREZ_TASKCharacter : public ACharacter, public IInteractionInterf
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* PumpAction;
 
+
+
 public:
 	AJUANFRAMIREZ_TASKCharacter();
 
