@@ -51,13 +51,21 @@ class AJUANFRAMIREZ_TASKCharacter : public ACharacter, public IInteractionInterf
 
 
 
+
 public:
 	AJUANFRAMIREZ_TASKCharacter();
 
 	virtual void Tick(float DeltaTime) override;
+
+	void ApplyPump();
 	
 
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
+	UAnimMontage* PumpMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animations")
+	UAnimMontage* JumpMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement variables")
 	float BaseSpeed;
@@ -78,6 +86,8 @@ protected:
 	void Look(const FInputActionValue& Value);
 
 	void Pump(const FInputActionValue& Value);
+
+	void Jump(const FInputActionValue& Value);
 
 	void AlignToGround();
 			

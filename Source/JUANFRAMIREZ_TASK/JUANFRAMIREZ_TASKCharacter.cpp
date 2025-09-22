@@ -116,7 +116,7 @@ void AJUANFRAMIREZ_TASKCharacter::SetupPlayerInputComponent(UInputComponent* Pla
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
 		
 		// Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AJUANFRAMIREZ_TASKCharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
 		// Moving
@@ -141,8 +141,6 @@ void AJUANFRAMIREZ_TASKCharacter::Move(const FInputActionValue& Value)
 	{
 		float DeltaTime = GetWorld()->GetDeltaSeconds();
 
-		/*if (MovementVector.Y > 0.f || CurrentSpeed > 0.f)
-		{*/
 			float TargetYawSpeed = MovementVector.X * MaxYawSpeed;
 			CurrentYawSpeed = FMath::FInterpTo(CurrentYawSpeed, TargetYawSpeed, DeltaTime, YawAcceleration);
 
@@ -167,14 +165,11 @@ void AJUANFRAMIREZ_TASKCharacter::Move(const FInputActionValue& Value)
 				AddMovementInput(ForwardDir, CurrentSpeed / MaxSpeed);
 			}
 
-			//AlignToGround();
-
 			if (GEngine)
 			{
 				GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Green,
 					FString::Printf(TEXT("CurrentSpeed: %.2f"), CurrentSpeed));
 			}
-		//}
 		else {
 			CurrentSpeed = 0;
 		}
@@ -183,7 +178,30 @@ void AJUANFRAMIREZ_TASKCharacter::Move(const FInputActionValue& Value)
 
 void AJUANFRAMIREZ_TASKCharacter::Pump(const FInputActionValue& Value) 
 {
+	if (PumpMontage && GetMesh()->GetAnimInstance())
+	{
+		GetMesh()->GetAnimInstance()->Montage_Play(PumpMontage, 1.75f);
+	}
+}
+
+void AJUANFRAMIREZ_TASKCharacter::ApplyPump() {
+
 	CurrentSpeed = FMath::Clamp(CurrentSpeed + PumpImpulse, 0.f, MaxSpeed);
+	/*if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green,
+			FString::Printf(TEXT("CurrentSpeed: %.2f"), CurrentSpeed));
+	}*/
+
+}
+
+void AJUANFRAMIREZ_TASKCharacter::Jump(const FInputActionValue& Value)
+{
+	Super::Jump();
+	if (PumpMontage && GetMesh()->GetAnimInstance())
+	{
+		GetMesh()->GetAnimInstance()->Montage_Play(JumpMontage);
+	}
 }
 
 void AJUANFRAMIREZ_TASKCharacter::Look(const FInputActionValue& Value)
@@ -267,7 +285,7 @@ void AJUANFRAMIREZ_TASKCharacter::OnObstaclePassed_Implementation(int32 ScoreToA
 		AHUD* HUD = PC->GetHUD();
 		if (HUD && HUD->GetClass()->ImplementsInterface(UWidgetMessages::StaticClass()))
 		{
-			IWidgetMessages::Execute_OnScoreChanged(HUD, ScoreToAdd);
+			IWidgetMessages::Execute_OnScoreChanged(HUD, ScoreManager->Score);
 		}
 	}
 }

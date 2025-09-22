@@ -47,11 +47,5 @@ void ABaseObstacle::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 			IInteractionInterface::Execute_OnObstaclePassed(OtherActor, Score);
 		}
 	}
-
-	/*if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow,
-			FString::Printf(TEXT("%s"), *OtherActor->GetName()));
-	}*/
 }
 
