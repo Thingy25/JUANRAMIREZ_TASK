@@ -63,15 +63,16 @@ AJUANFRAMIREZ_TASKCharacter::AJUANFRAMIREZ_TASKCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
-	BaseSpeed = 150;
 	CurrentYawSpeed = 0.f;
 	MaxYawSpeed = 160.f; 
 	YawAcceleration = 80.f;
 
+	BaseSpeed = 0.5f;
 	CurrentSpeed = 17.5f;
-	PumpImpulse = 250.f;
+	PumpImpulse = 500.f;
 	MaxSpeed = 5000.f;
-	Friction = 0.2f;
+	Friction = 50.f;
+	SlowDownRate = 150.f;
 
 }
 
@@ -81,19 +82,12 @@ AJUANFRAMIREZ_TASKCharacter::AJUANFRAMIREZ_TASKCharacter()
 void AJUANFRAMIREZ_TASKCharacter::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 
-		FVector ForwardDir = GetActorForwardVector().GetSafeNormal();
-		if (CurrentSpeed > KINDA_SMALL_NUMBER)
-		{
-			AddMovementInput(ForwardDir, CurrentSpeed / MaxSpeed);
-		}
-	if (CurrentSpeed > 0.f)
-	{
+	FVector ForwardDir = GetActorForwardVector().GetSafeNormal();
+	AddMovementInput(ForwardDir, BaseSpeed * CurrentSpeed);
+	GetCharacterMovement()->MaxWalkSpeed = BaseSpeed + CurrentSpeed;
+	CurrentSpeed = FMath::Max(CurrentSpeed - Friction * DeltaTime, 0.f);
 
-		float DecayRate = Friction * BaseSpeed;
-		CurrentSpeed = FMath::Max(CurrentSpeed - DecayRate * DeltaTime, 0.f);
-
-		AlignToGround();
-	}
+	AlignToGround();
 }
 
 void AJUANFRAMIREZ_TASKCharacter::NotifyControllerChanged()
@@ -152,18 +146,11 @@ void AJUANFRAMIREZ_TASKCharacter::Move(const FInputActionValue& Value)
 
 			float InputScale = MovementVector.Y;
 
-			GetCharacterMovement()->MaxWalkSpeed = BaseSpeed + CurrentSpeed;
-
-			//AddMovementInput(ForwardDir, InputScale);
-
-			if (MovementVector.Y > 0.f)
+			if (MovementVector.Y < 0.f)
 			{
-				AddMovementInput(ForwardDir, MovementVector.Y);
+				CurrentSpeed += MovementVector.Y * SlowDownRate * DeltaTime;
 			}
-			else if (CurrentSpeed > KINDA_SMALL_NUMBER)
-			{
-				AddMovementInput(ForwardDir, CurrentSpeed / MaxSpeed);
-			}
+			if (CurrentSpeed < 0) CurrentSpeed = 0;
 
 			if (GEngine)
 			{
@@ -228,26 +215,6 @@ void AJUANFRAMIREZ_TASKCharacter::AlignToGround() {
 	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
 	{
 		FVector GroundNormal = Hit.ImpactNormal;
-
-		DrawDebugLine(
-			GetWorld(),
-			Start,
-			Hit.Location,
-			FColor::Green,
-			false,
-			0.0f,
-			0,
-			2.0f
-		);
-
-		DrawDebugPoint(
-			GetWorld(),
-			Hit.Location,
-			10.0f,
-			FColor::Red,
-			false,
-			0.0f
-		);
 
 		FVector Forward = GetActorForwardVector();
 		FVector Right = FVector::CrossProduct(GroundNormal, Forward).GetSafeNormal();

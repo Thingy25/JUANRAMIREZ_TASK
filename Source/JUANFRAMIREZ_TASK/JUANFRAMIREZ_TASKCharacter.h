@@ -75,11 +75,16 @@ protected:
 	float MaxYawSpeed;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement variables")
 	float YawAcceleration;
-
-	float CurrentSpeed;       
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement variables")
+	float CurrentSpeed; 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement variables")
 	float PumpImpulse;       
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement variables")
 	float MaxSpeed;           
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement variables")
 	float Friction;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement variables")
+	float SlowDownRate;
 
 	void Move(const FInputActionValue& Value);
 
