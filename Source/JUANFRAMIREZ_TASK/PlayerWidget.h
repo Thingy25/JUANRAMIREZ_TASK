@@ -20,5 +20,11 @@ public:
 private:
 	UPROPERTY(meta=(BindWidget))
 	class UTextBlock* ScoreText;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* ScoreName;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* ControlsText;
 	
 };
