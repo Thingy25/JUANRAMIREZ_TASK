@@ -35,11 +35,5 @@ void UScoreManager::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 void UScoreManager::AddScore(int32 ScoreToAdd) {
 
 	Score += ScoreToAdd;
-
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow,
-			FString::Printf(TEXT("Puntos: %d"), Score));
-	}
 }
 

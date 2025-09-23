@@ -18,6 +18,7 @@ ABaseObstacle::ABaseObstacle()
 	BoxCollision->SetupAttachment(ObstacleMesh);
 
 	BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &ABaseObstacle::OnOverlapBegin);
+	BoxCollision->OnComponentEndOverlap.AddDynamic(this, &ABaseObstacle::OnOverlapEnd);
 
 	Score = 50;
 
@@ -46,6 +47,14 @@ void ABaseObstacle::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 			OverlappedActors.Add(OtherActor);
 			IInteractionInterface::Execute_OnObstaclePassed(OtherActor, Score);
 		}
+	}
+}
+
+void ABaseObstacle::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OverlappedActors.Contains(OtherActor))
+	{
+		OverlappedActors.Remove(OtherActor);
 	}
 }
 
